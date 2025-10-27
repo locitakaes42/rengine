@@ -35,7 +35,7 @@ from scanEngine.models import (EngineType, InstalledExternalTool, Notification, 
 from startScan.models import *
 from startScan.models import EndPoint, Subdomain, Vulnerability
 from targetApp.models import Domain
-
+import requests
 """
 Celery tasks.
 """
@@ -3788,6 +3788,62 @@ def geo_localize(host, ip_id=None):
 	logger.info(f'Geo IP lookup failed for host "{host}"')
 	return None
 
+@app.task(name='check_abuseipdb', bind=False, queue='geo_localize_queue') # Kita gunakan queue yang sama dengan geo_localize
+def check_abuseipdb(ip_address, ip_id=None):
+	"""
+	Memeriksa reputasi IP menggunakan AbuseIPDB.
+
+	Args:
+		ip_address (str): Alamat IP yang akan diperiksa.
+		ip_id (int): ID dari objek IpAddress yang akan diperbarui.
+	"""
+	logger.info(f'Memeriksa reputasi AbuseIPDB untuk {ip_address}')
+	
+	try:
+		# 1. Ambil API Key dari database
+		api_key_entry = AbuseIPDBAPIKey.objects.first()
+		if not api_key_entry or not api_key_entry.key:
+			logger.warning('API key AbuseIPDB tidak ditemukan. Melewatkan pengecekan reputasi.')
+			return None
+
+		if not ip_id:
+			logger.error('Tidak ada ID IpAddress yang diberikan ke check_abuseipdb. Membatalkan.')
+			return None
+
+		# 2. Tentukan endpoint dan parameter API
+		url = 'https://api.abuseipdb.com/api/v2/check'
+		params = {
+			'ipAddress': ip_address,
+			'maxAgeInDays': '90'  # Bisa Anda jadikan konfigurasi jika perlu
+		}
+		headers = {
+			'Accept': 'application/json',
+			'Key': api_key_entry.key
+		}
+
+		# 3. Lakukan request ke API
+		response = requests.get(url, headers=headers, params=params)
+		
+		if response.status_code == 200:
+			data = response.json()
+			score = data.get('data', {}).get('abuseConfidenceScore')
+			
+			if score is not None:
+				# 4. Update objek IpAddress di database
+				ip = IpAddress.objects.get(pk=ip_id)
+				ip.abuse_confidence_score = score
+				ip.save()
+				logger.info(f'Berhasil memperbarui skor AbuseIPDB untuk {ip_address}: {score}')
+				return score
+			else:
+				logger.warning(f'Respons AbuseIPDB untuk {ip_address} tidak mengandung skor.')
+		else:
+			logger.error(f'Request API AbuseIPDB gagal untuk {ip_address}. Status: {response.status_code}, Respons: {response.text}')
+	
+	except Exception as e:
+		logger.exception(f'Terjadi error saat pengecekan AbuseIPDB untuk {ip_address}: {e}')
+	
+	return None
 
 @app.task(name='query_whois', bind=False, queue='query_whois_queue')
 def query_whois(target, force_reload_whois=False):
@@ -4601,6 +4657,7 @@ def save_ip_address(ip_address, subdomain=None, subscan=None, **kwargs):
 	# Geo-localize IP asynchronously
 	if created:
 		geo_localize.delay(ip_address, ip.id)
+		check_abuseipdb.delay(ip_address, ip.id)
 
 	return ip, created
 

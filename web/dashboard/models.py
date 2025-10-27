@@ -60,7 +60,13 @@ class HackerOneAPIKey(models.Model):
 
 	def __str__(self):
 		return self.username
+	
+class AbuseIPDBAPIKey(models.Model):
+	id = models.AutoField(primary_key=True)
+	key = models.CharField(max_length=500)
 
+	def __str__(self):
+		return "AbuseIPDB API Key"
 
 class InAppNotification(models.Model):
 	project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True)
