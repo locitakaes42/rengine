@@ -35,6 +35,7 @@ from scanEngine.models import (EngineType, InstalledExternalTool, Notification, 
 from startScan.models import *
 from startScan.models import EndPoint, Subdomain, Vulnerability
 from targetApp.models import Domain
+from dashboard.models import AbuseIPDBAPIKey
 import requests
 """
 Celery tasks.
