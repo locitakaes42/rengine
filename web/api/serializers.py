@@ -839,7 +839,21 @@ class IpSerializer(serializers.ModelSerializer):
 	color_class = serializers.CharField(source='get_abuse_score_color_class', read_only=True)
 	class Meta:
 		model = IpAddress
-		fields = '__all__'
+		fields = [
+            'id',
+            'address',
+            'is_cdn',
+            'ports',
+            'geo_iso',
+            'version',
+            'is_private',
+            'reverse_pointer',
+            'ip_subscan_ids',
+            'abuse_confidence_score',
+            
+            # Field kustom 'color_class' yang baru
+            'color_class' 
+        ]
 
 
 class DirectoryFileSerializer(serializers.ModelSerializer):
