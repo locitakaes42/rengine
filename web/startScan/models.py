@@ -583,6 +583,24 @@ class IpAddress(models.Model):
 	# this is used for querying which ip was discovered during subcan
 	ip_subscan_ids = models.ManyToManyField('SubScan', related_name='ip_subscan_ids')
 
+	abuse_confidence_score = models.IntegerField(blank=True, null=True, default=None)
+
+	@property
+	def get_abuse_score_color_class(self):
+		if self.abuse_confidence_score is None:
+			return ""  # Warna default (jika belum discan)
+		
+		score = self.abuse_confidence_score
+		
+		if score == 0:
+			return "text-success"  # Hijau (Aman)
+		elif 1 <= score <= 50:
+			return "text-warning"  # Kuning (Cukup Awas)
+		elif score > 50:
+			return "text-danger"   # Merah (Berbahaya/Suspicious)
+		
+		return "" # Default
+
 	def __str__(self):
 		return str(self.address)
 
