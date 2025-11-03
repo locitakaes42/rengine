@@ -836,7 +836,7 @@ class PortSerializer(serializers.ModelSerializer):
 class IpSerializer(serializers.ModelSerializer):
 
 	ports = PortSerializer(many=True)
-
+	color_class = serializers.CharField(source='get_abuse_score_color_class', read_only=True)
 	class Meta:
 		model = IpAddress
 		fields = '__all__'

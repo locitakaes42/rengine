@@ -5,8 +5,44 @@ const subdomain_datatable_columns = [
   {'data': 'endpoint_count'},
   {'data': 'http_status'},
   {'data': 'page_title'},
-  {'data': 'ip_addresses'},
-  {'data': 'ip_addresses'},
+  {
+        // --- KOLOM IP ADDRESS (SUDAH DIMODIFIKASI) ---
+        'data': 'ip_addresses',
+        'className': "text-center",
+        'render': function (data, type, row) {
+            if (!data || data.length === 0) return '';
+            let ip_html = '';
+            data.forEach(function(ip) {
+                // Gunakan ip.color_class dari serializer
+                ip_html += `<a href="http://${ip.address}" target="_blank">
+                                <span class="${ip.color_class}">${ip.address}</span>
+                            </a><br>`;
+            });
+            return ip_html;
+        }
+    },
+    {
+        // --- KOLOM PORTS (SUDAH DIMODIFIKASI) ---
+        'data': 'ip_addresses',
+        'className': "text-center",
+        'render': function (data, type, row) {
+            if (!data || data.length === 0) return '';
+            let port_html = '';
+            data.forEach(function(ip) {
+                if (ip.ports && ip.ports.length > 0) {
+                    let ports_str = ip.ports.map(port => port.number).join(' ');
+                    port_html += `<a role="button" tabindex="0" class="btn-link"
+                                     data-container="body" data-toggle="popover"
+                                     data-trigger="focus" title="Ports for ${ip.address}"
+                                     data-content="${ports_str}">
+                                     <i class="mdi mdi-information-outline"></i>
+                                  </a>`;
+                }
+                port_html += '<br>';
+            });
+            return port_html;
+        }
+    },
   {'data': 'content_length', 'searchable': false},
   {'data': 'screenshot_path', 'searchable': false},
   {'data': 'response_time'},

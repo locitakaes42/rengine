@@ -180,14 +180,6 @@
 									<th>Subscan Count</th>
 								</tr>
 							</thead>
-							<td class="text-center"> {% for ip in subdomain.ip_addresses.all %} <a href="http://{{ ip.address }}" target="_blank"> <span class="{{ ip.get_abuse_score_color_class }}">{{ ip.address }}</span> </a> {% if ip.ports.all %}
-                              <a role="button" tabindex="0" class="btn-link" data-container="body" data-toggle="popover" data-trigger="focus" title="Ports" data-content="{% for port in ip.ports.all %}{{ port.number }} {% endfor %}">
-                                <i class="mdi mdi-information-outline"></i>
-                              </a>
-                              {% endif %}
-                              <br>
-                              {% endfor %}
-                            </td>
 						</table>
 					</div>
 				</div>
