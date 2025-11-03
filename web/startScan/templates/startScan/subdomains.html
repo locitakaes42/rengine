@@ -215,10 +215,10 @@ $(document).ready(function() {
 						{
 							Object.entries(data).forEach(([key, value]) => {
 								if (value['is_cdn']) {
-									ip_badge += `<span class='m-1 badge badge-soft-warning badge-link' title="CDN IP Address" onclick="get_ip_details('${value.address}', scan_id=null, domain_id=null)">${value.address},${value.abuse_confidence_score ?? "-"}</span>`
+									ip_badge += `<span class='m-1 badge ${value.color_class} badge-link' title="CDN IP Address" onclick="get_ip_details('${value.address}', scan_id=null, domain_id=null)">${value.address}</span>`
 								}
 								else{
-									ip_badge += `<span class='m-1 badge badge-soft-primary badge-link' onclick="get_ip_details('${value.address}', scan_id=null, domain_id=null)">${value.address},${value.abuse_confidence_score ?? "-"}</span>`
+									ip_badge += `<span class='m-1 badge ${value.color_class} badge-link' onclick="get_ip_details('${value.address}', scan_id=null, domain_id=null)">${value.address}</span>`
 								}
 							});
 							return ip_badge;

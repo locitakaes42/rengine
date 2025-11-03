@@ -588,18 +588,18 @@ class IpAddress(models.Model):
 	@property
 	def get_abuse_score_color_class(self):
 		if self.abuse_confidence_score is None:
-			return ""  # Warna default (jika belum discan)
+			return "badge-soft-secondary"  # Warna default (jika belum discan)
 		
 		score = self.abuse_confidence_score
 		
 		if score == 0:
-			return "text-success"  # Hijau (Aman)
+			return "badge-soft-success"  # Hijau (Aman)
 		elif 1 <= score <= 50:
-			return "text-warning"  # Kuning (Cukup Awas)
+			return "badge-soft-warning"  # Kuning (Cukup Awas)
 		elif score > 50:
-			return "text-danger"   # Merah (Berbahaya/Suspicious)
+			return "badge-soft-danger"   # Merah (Berbahaya/Suspicious)
 		
-		return "" # Default
+		return "badge-soft-secondary" # Default
 
 	def __str__(self):
 		return str(self.address)
