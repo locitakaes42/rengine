@@ -845,11 +845,11 @@ class IpSerializer(serializers.ModelSerializer):
             'address',
             'is_cdn',
             'ports',
-            'geo_iso',
+        
             'version',
             'is_private',
             'reverse_pointer',
-            'ip_subscan_ids',
+          
             'abuse_confidence_score',
             
             # Field kustom 'color_class' yang baru
