@@ -858,6 +858,35 @@ class IpSerializer(serializers.ModelSerializer):
         ]
         
     def get_country_name(self, obj):
+        # Pastikan indentasi di sini benar (4 spasi)
+        if obj.geo_iso:
+            return obj.geo_iso.name
+        # Jika tidak ada geo_iso, kembalikan None (atau 'N/A') dengan aman
+        return None
+
+    ports = PortSerializer(many=True)
+    color_class = serializers.CharField(source='get_abuse_score_color_class', read_only=True)
+    country_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = IpAddress
+        fields = [
+            'id',
+            'address',
+            'is_cdn',
+            'ports',
+            'version',
+            'is_private',
+            'reverse_pointer',
+            'abuse_confidence_score',
+            
+            # Field kustom 'color_class' yang baru
+            'color_class', 
+            'isp',
+            'country_name'
+        ]
+        
+    def get_country_name(self, obj):
         # Indentasi 4 spasi
         if obj.geo_iso:
             return obj.geo_iso.name
