@@ -17,7 +17,7 @@ function get_ip_details(element, history_id){
 	var color_class = element.dataset.colorClass;
 
 	// Set judul modal
-	document.getElementById("detailScanModalLabel").innerHTML='Detail for ' + ip;
+	document.getElementById("modal_title").innerHTML='Detail for ' + ip;
 	
 	// Ambil data port (seperti aslinya)
 	fetch('../ip/ports/'+ip+'/'+history_id+'/')
@@ -92,7 +92,7 @@ function render_ip_details_with_tabs(portData, abuse_score, country_name, isp, c
 	`;
 
 	// 4. Masukkan HTML ke dalam Modal
-	var ip_address_content = document.getElementById("detailScanModalContent");
+	var ip_address_content = document.getElementById("modal-content");
 	ip_address_content.innerHTML = tab_html;
 
 	// 5. Inisialisasi ulang tooltip
