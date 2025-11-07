@@ -9,94 +9,99 @@ function get_ips_from_port(port_number, history_id){
 // GANTI FUNGSI LAMA 'get_ports_for_ip' DENGAN INI
 // Fungsi ini akan dipanggil sebagai get_ip_details(this, history_id) dari HTML
 function get_ip_details(element, history_id){
-	// Ambil semua data dari data-atribut
-	var ip = element.dataset.address;
-	var abuse_score = element.dataset.abuseScore;
-	var country_name = element.dataset.countryName;
-	var isp = element.dataset.isp;
-	var color_class = element.dataset.colorClass;
+    // Ambil semua data dari data-atribut
+    var ip = element.dataset.address;
+    var abuse_score = element.dataset.abuseScore;
+    var country_name = element.dataset.countryName;
+    var isp = element.dataset.isp;
+    var color_class = element.dataset.colorClass;
+    
+    // *** BARIS BARU: Ambil data port dari atribut ***
+    // Kita gunakan decodeURIComponent untuk membalikkan encode
+    var ports_data = JSON.parse(decodeURIComponent(element.dataset.ports));
 
-	// Set judul modal
-	document.getElementById("modal_title").innerHTML='Detail for ' + ip;
-	
-	// Ambil data port (seperti aslinya)
-	fetch('../ip/ports/'+ip+'/'+history_id+'/')
-	.then(response => response.json())
-	.then(data => {
-		// Kirim data port DAN data abuse ke renderer baru
-		render_ip_details_with_tabs(data, abuse_score, country_name, isp, color_class, ip);
-	});
+    // Set judul modal
+    document.getElementById("modal_title").innerHTML='Detail for ' + ip;
+    
+    // *** KITA HAPUS SEMUA BLOK 'fetch' YANG GAGAL DI SINI ***
+    
+    // *** PANGGIL RENDERER SECARA LANGSUNG DENGAN DATA YANG SUDAH ADA ***
+    render_ip_details_with_tabs(ports_data, abuse_score, country_name, isp, color_class, ip);
 }
 
 // GANTI FUNGSI LAMA 'render_ports' DENGAN INI
-function render_ip_details_with_tabs(portData, abuse_score, country_name, isp, color_class, ip)
+function render_ip_details_with_tabs(ports_object, abuse_score, country_name, isp, color_class, ip)
 {
-	var port_badge = '';
-	var port_content = '';
-	var abuse_content = '';
+    var port_badge = '';
+    var port_content = '';
+    var abuse_content = '';
 
-	// 1. Buat Konten Port
-	var ports = JSON.parse(portData);
-	if(Object.keys(ports).length > 0) {
-		Object.entries(ports).forEach(([key, value]) => {
-			badge_color = value[3] ? 'danger' : 'info';
-			title = value[3] ? 'Uncommon Port - ' + value[2] : value[2];
-			port_badge += `<span class='m-1 badge  badge-soft-${badge_color} bs-tooltip' title='${title}'>${value[0]}/${value[1]}</span>`;
-		});
-		port_content = port_badge;
-	} else {
-		port_content = '<p>No open ports found for this IP.</p>';
-	}
+    // 1. Buat Konten Port
+    // *** PERUBAHAN DI SINI: Tidak perlu JSON.parse() lagi ***
+    var ports = ports_object; // ports_object sudah berupa object/array
+    
+    // Ubah cara iterasi karena 'ports' sekarang adalah array
+    if(ports && ports.length > 0) {
+        // 'value' sekarang adalah port_obj
+        ports.forEach((value) => { 
+            badge_color = value.is_uncommon ? 'danger' : 'info';
+            title = value.is_uncommon ? 'Uncommon Port - 'J ' + value.description : value.description;
+            port_badge += `<span class='m-1 badge  badge-soft-${badge_color} bs-tooltip' title='${title}'>${value.number}/${value.service_name}</span>`;
+        });
+        port_content = port_badge;
+    } else {
+        port_content = '<p>No open ports found for this IP.</p>';
+    }
 
-	// 2. Buat Konten IP Abuse (menggunakan data dari model Anda)
-	if (abuse_score !== 'N/A' && abuse_score !== null) {
+    // 2. Buat Konten IP Abuse (menggunakan data dari model Anda)
+    if (abuse_score !== 'N/A' && abuse_score !== null) {
         // Gunakan 'color_class' yang didapat dari property 'get_abuse_score_color_class'
-		abuse_content = `
-			<p><strong>Abuse Confidence Score:</strong>
-				<span class="badge ${color_class}">
-					${abuse_score}%
-				</span>
-			</p>
-			<p class="pt-2"><strong>Country:</strong> ${country_name}</p>
-			<p class="pt-2"><strong>ISP:</strong> ${isp}</p>
-			<a href="https://www.abuseipdb.com/check/${ip}" target="_blank" class="btn btn-primary mt-2">
-				<i class="mdi mdi-open-in-new"></i> View full report on AbuseIPDB
-			</a>
-		`;
-	} else {
-		abuse_content = '<p>No abuse information found for this IP address.</p>';
-	}
+        abuse_content = `
+            <p><strong>Abuse Confidence Score:</strong>
+                <span class="badge ${color_class}">
+                    ${abuse_score}%
+                </span>
+            </p>
+            <p class="pt-2"><strong>Country:</strong> ${country_name}</p>
+            <p class="pt-2"><strong>ISP:</strong> ${isp}</p>
+            <a href="https://www.abuseipdb.com/check/${ip}" target="_blank" class="btn btn-primary mt-2">
+                <i class="mdi mdi-open-in-new"></i> View full report on AbuseIPDB
+            </a>
+        `;
+    } else {
+        abuse_content = '<p>No abuse information found for this IP address.</p>';
+    }
 
-	// 3. Buat Struktur HTML Tab
-	var tab_html = `
-		<ul class="nav nav-tabs nav-justified">
-			<li class="nav-item">
-				<a href="#modal_open_ports" data-bs-toggle="tab" aria-expanded="true" class="nav-link active">
-					<span class="d-none d-lg-block">Open Ports</span>
-				</a>
-			</li>
-			<li class="nav-item">
-				<a href="#modal_ip_abuse" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
-					<span class="d-none d-lg-block">IP Abuse</span>
-				</a>
-			</li>
-		</ul>
-		<div class="tab-content p-3">
-			<div class="tab-pane fade show active" id="modal_open_ports">
-				${port_content}
-			</div>
-			<div class="tab-pane fade" id="modal_ip_abuse">
-				${abuse_content}
-			</div>
-		</div>
-	`;
+    // 3. Buat Struktur HTML Tab (Sama seperti sebelumnya)
+    var tab_html = `
+        <ul class="nav nav-tabs nav-justified">
+            <li class="nav-item">
+                <a href="#modal_open_ports" data-bs-toggle="tab" aria-expanded="true" class="nav-link active">
+                    <span class="d-none d-lg-block">Open Ports</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#modal_ip_abuse" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+                    <span class="d-none d-lg-block">IP Abuse</span>
+                </a>
+            </li>
+        </ul>
+        <div class="tab-content p-3">
+            <div class="tab-pane fade show active" id="modal_open_ports">
+                ${port_content}
+            </div>
+            <div class="tab-pane fade" id="modal_ip_abuse">
+                ${abuse_content}
+            </div>
+        </div>
+    `;
 
-	// 4. Masukkan HTML ke dalam Modal
-	var ip_address_content = document.getElementById("modal-content");
-	ip_address_content.innerHTML = tab_html;
+    // 4. Masukkan HTML ke dalam Modal
+    var ip_address_content = document.getElementById("modal-content");
+    ip_address_content.innerHTML = tab_html;
 
-	// 5. Inisialisasi ulang tooltip
-	$('.bs-tooltip').tooltip();
+    // 5. Inisialisasi ulang tooltip
+    $('.bs-tooltip').tooltip();
 }
 
 function render_ips(data)

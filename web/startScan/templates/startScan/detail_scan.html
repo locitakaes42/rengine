@@ -2358,7 +2358,7 @@ $(document).ready(function() {
 						},
 						"targets": 5,
 					},
-					// ip address
+// ip address
 					{
 						"render": function ( data, type, row ) {
 							ip_badge = ''
@@ -2370,6 +2370,9 @@ $(document).ready(function() {
 									var country_name = value.country_name || 'N/A';
 									var isp = value.isp || 'N/A';
 									var title = value.is_cdn ? 'CDN IP Address' : 'IP Address';
+									
+									// *** BARIS BARU: Ubah data port menjadi string untuk disimpan di HTML ***
+									var ports_json_string = encodeURIComponent(JSON.stringify(value.ports));
 
 									// Tambahkan data-* atribut untuk menyimpan info abuse
 									// dan ubah onclick untuk mengirim 'this'
@@ -2380,6 +2383,9 @@ $(document).ready(function() {
 										data-country-name='${country_name}'
 										data-isp='${isp}'
 										data-color-class='${value.color_class}'
+										
+										data-ports='${ports_json_string}'
+										
 										onclick="get_ip_details(this, {{scan_history_id}})">
 											${value.address}
 									</span>`;
