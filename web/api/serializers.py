@@ -852,7 +852,10 @@ class IpSerializer(serializers.ModelSerializer):
             'abuse_confidence_score',
             
             # Field kustom 'color_class' yang baru
-            'color_class' 
+            'color_class', 
+			'isp',
+			'country_name'
+
         ]
 
 

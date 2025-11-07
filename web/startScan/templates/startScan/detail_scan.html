@@ -2365,12 +2365,24 @@ $(document).ready(function() {
 							if (data)
 							{
 								Object.entries(data).forEach(([key, value]) => {
-									if (value['is_cdn']) {
-										ip_badge += `<span class='m-1 badge ${value.color_class} badge-link' title="CDN IP Address" onclick="get_ip_details('${value.address}', {{scan_history_id}})">${value.address}</span>`
-									}
-									else{
-										ip_badge += `<span class='m-1 badge ${value.color_class} badge-link' onclick="get_ip_details('${value.address}', {{scan_history_id}})">${value.address}</span>`
-									}
+									// Ambil data (sekarang sudah ada dari serializer)
+									var abuse_score = value.abuse_confidence_score !== null ? value.abuse_confidence_score : 'N/A';
+									var country_name = value.country_name || 'N/A';
+									var isp = value.isp || 'N/A';
+									var title = value.is_cdn ? 'CDN IP Address' : 'IP Address';
+
+									// Tambahkan data-* atribut untuk menyimpan info abuse
+									// dan ubah onclick untuk mengirim 'this'
+									ip_badge += `<span class='m-1 badge ${value.color_class} badge-link' 
+										title="${title}"
+										data-address='${value.address}'
+										data-abuse-score='${abuse_score}'
+										data-country-name='${country_name}'
+										data-isp='${isp}'
+										data-color-class='${value.color_class}'
+										onclick="get_ip_details(this, {{scan_history_id}})">
+											${value.address}
+									</span>`;
 								});
 								return ip_badge;
 							}

@@ -584,7 +584,7 @@ class IpAddress(models.Model):
 	ip_subscan_ids = models.ManyToManyField('SubScan', related_name='ip_subscan_ids')
 
 	abuse_confidence_score = models.IntegerField(blank=True, null=True, default=None)
-
+	isp = models.CharField(max_length=100, blank=True, null=True)
 	@property
 	def get_abuse_score_color_class(self):
 		if self.abuse_confidence_score is None:
