@@ -837,6 +837,7 @@ class IpSerializer(serializers.ModelSerializer):
 
 	ports = PortSerializer(many=True)
 	color_class = serializers.CharField(source='get_abuse_score_color_class', read_only=True)
+	country_name = serializers.SerializerMethodField()
 	class Meta:
 		model = IpAddress
 		fields = [
@@ -857,6 +858,11 @@ class IpSerializer(serializers.ModelSerializer):
 			'country_name'
 
         ]
+	def get_country_name(self, obj):
+    	if obj.geo_iso:
+            return obj.geo_iso.name
+        # Jika tidak ada geo_iso, kembalikan None (atau 'N/A') dengan aman
+        return None
 
 
 class DirectoryFileSerializer(serializers.ModelSerializer):
