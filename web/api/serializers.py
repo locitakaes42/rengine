@@ -858,11 +858,11 @@ class IpSerializer(serializers.ModelSerializer):
         ]
         
     def get_country_name(self, obj):
+        # Indentasi 4 spasi
         if obj.geo_iso:
             return obj.geo_iso.name
-        # Jika tidak ada geo_iso, kembalikan None (atau 'N/A') dengan aman
+        # Indentasi 4 spasi
         return None
-
 
 class DirectoryFileSerializer(serializers.ModelSerializer):
 
