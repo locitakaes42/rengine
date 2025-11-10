@@ -7,7 +7,7 @@ from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-
+from startScan.views import get_abuseipdb_ip_details
 from reNgine.views import serve_protected_media
 
 schema_view = get_schema_view(
@@ -60,6 +60,7 @@ urlpatterns = [
         serve_protected_media, 
         name='serve_protected_media'
     ),
+    path('get_abuseipdb_details/', get_abuseipdb_ip_details, name='get_abuseipdb_details'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 # ] + static(settings.MEDIA_URL, document_root=settings.RENGINE_RESULTS) + \
     
