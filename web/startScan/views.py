@@ -22,6 +22,7 @@ from reNgine.tasks import create_scan_activity, initiate_scan, run_command
 from scanEngine.models import EngineType
 from startScan.models import *
 from targetApp.models import *
+from dashboard.models import AbuseIPDBAPIKey
 
 
 def scan_history(request, slug):
@@ -1144,3 +1145,33 @@ def create_report(request, id):
         response = HttpResponse(pdf, content_type='application/pdf')
 
     return response
+
+def get_abuseipdb_ip_details(request):
+    ip_address = request.GET.get('ip')
+    if not ip_address:
+        return JsonResponse({'status': False, 'message': 'IP address required'}, status=400)
+
+    try:
+        api_key_obj = AbuseIPDBAPIKey.objects.first()
+        if not api_key_obj or not api_key_obj.key:
+            return JsonResponse({'status': False, 'message': 'AbuseIPDB API Key not configured'}, status=500)
+        
+        url = 'https://api.abuseipdb.com/api/v2/check'
+        params = {
+            'ipAddress': ip_address,
+            'maxAgeInDays': '90' # Bisa disesuaikan
+        }
+        headers = {
+            'Accept': 'application/json',
+            'Key': api_key_obj.key
+        }
+        
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        
+        if response.status_code == 200:
+            return JsonResponse({'status': True, 'data': response.json().get('data', {})})
+        else:
+            return JsonResponse({'status': False, 'message': 'Error from AbuseIPDB API'}, status=response.status_code)
+            
+    except Exception as e:
+        return JsonResponse({'status': False, 'message': str(e)}, status=500)

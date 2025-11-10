@@ -2208,6 +2208,7 @@ function get_ports(scan_id=null, domain_id=null){
 function get_ip_details(ip_address, scan_id=null, domain_id=null){
 	var port_url = `/api/queryPorts/?ip_address=${ip_address}`;
 	var subdomain_url = `/api/querySubdomains/?ip_address=${ip_address}`;
+	var abuseipdb_url = `/get_abuseipdb_details/?ip=${ip_address}`;
 
 	if (scan_id) {
 		port_url += `&scan_id=${scan_id}`;
@@ -2236,10 +2237,12 @@ function get_ip_details(ip_address, scan_id=null, domain_id=null){
 
 	$('#modal_tab_nav').append(`<li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#modal_content_port" aria-expanded="true"><span id="modal-open-ports-count"></span>Open Ports &nbsp;${port_loader}</a></li>`);
 	$('#modal_tab_nav').append(`<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#modal_content_subdomain" aria-expanded="false"><span id="modal-subdomain-count"></span>Subdomains &nbsp;${subdomain_loader}</a></li>`)
-
+	$('#modal_tab_nav').append(`<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#modal_content_abuseipdb" aria-expanded="false">AbuseIPDB &nbsp;${abuseipdb_loader}</a></li>`);
+	
 	// add content area
 	$('#modal_tab_content').empty();
 	$('#modal_tab_content').append(`<div class="tab-pane show active" id="modal_content_port"></div><div class="tab-pane" id="modal_content_subdomain"></div>`);
+	$('#modal_tab_content').append(`<div class="tab-pane" id="modal_content_abuseipdb" style="padding: 15px;"></div>`);
 
 	$('#modal-open-ports').append(`<div class="modal-text" id="modal-text-open-port"></div>`);
 	$('#modal-text-open-port').append(`<ul id="modal-open-port-text"></ul>`);
@@ -2290,6 +2293,65 @@ function get_ip_details(ip_address, scan_id=null, domain_id=null){
 		$("#modal-text-subdomain").append(`<span class="float-end text-danger">*Subdomains highlighted are 40X HTTP Status</span>`);
 		$("#subdomain-modal-loader").remove();
 	});
+	$.getJSON(abuseipdb_url, function(response) {
+        let contentDiv = $('#modal_content_abuseipdb');
+        if (response.status && response.data) {
+            var abuseData = response.data;
+            var location = abuseData.countryName || 'N/A';
+            
+            var score = abuseData.abuseConfidenceScore || 0;
+            var score_color = 'success';
+            if (score > 25) score_color = 'warning';
+            if (score > 75) score_color = 'danger';
+
+            contentDiv.html(`
+                <table class="table table-sm table-borderless">
+                    <tbody>
+                        <tr>
+                            <td style="width: 200px;"><strong>Abuse Confidence Score</strong></td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-${score_color}" role="progressbar" style="width: ${score}%;" aria-valuenow="${score}" aria-valuemin="0" aria-valuemax="100">
+                                        ${score}%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>ISP</strong></td>
+                            <td>${escapeHTML(abuseData.isp)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Location</strong></td>
+                            <td>${escapeHTML(location)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Domain</strong></td>
+                            <td>${escapeHTML(abuseData.domain)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Usage Type</strong></td>
+                            <td>${escapeHTML(abuseData.usageType)}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Reports</strong></td>
+                            <td>${escapeHTML(abuseData.totalReports)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <a href="https://www.abuseipdb.com/check/${ip_address}" target="_blank" class="btn btn-primary btn-sm mt-2">
+                    View Full Report on AbuseIPDB
+                    <i class="fe-external-link"></i>
+                </a>
+            `);
+        } else {
+            contentDiv.html('<div class="alert alert-warning">' + (response.message || 'Failed to load data from AbuseIPDB.') + '</div>');
+        }
+        $("#abuseipdb-modal-loader").remove();
+    }).fail(function() {
+        $('#modal_content_abuseipdb').html('<div class="alert alert-danger">Error: Could not reach AbuseIPDB endpoint. Is the API Key configured and the URL path correct?</div>');
+        $("#abuseipdb-modal-loader").remove();
+    });
 }
 
 function get_port_details(port, scan_id=null, domain_id=null){
@@ -3534,5 +3596,21 @@ function handleSyncBookmarkedProgramsSwal() {
 				});
 			});
 		}
+	});
+}
+
+// Helper function to prevent XSS
+function escapeHTML(str) {
+	if (str === null || str === undefined || typeof str === 'number') {
+		return str || 'N/A';
+	}
+	return str.toString().replace(/[&<>"']/g, function(m) {
+		return {
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			'"': '&quot;',
+			"'": '&#39;'
+		}[m];
 	});
 }
