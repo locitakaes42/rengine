@@ -114,4 +114,7 @@ urlpatterns = [
         '<slug:slug>/stop/multiple',
         views.stop_scans,
         name='stop_multiple_scans'),
+    path('get_abuseipdb_details/',
+        views.get_abuseipdb_ip_details, 
+        name='get_abuseipdb_details'),
 ]
