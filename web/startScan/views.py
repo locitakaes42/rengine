@@ -23,7 +23,7 @@ from scanEngine.models import EngineType
 from startScan.models import *
 from targetApp.models import *
 from dashboard.models import AbuseIPDBAPIKey
-
+from reNgine.utilities import send_to_splunk
 
 def scan_history(request, slug):
     host = ScanHistory.objects.filter(domain__project__slug=slug).order_by('-start_scan_date')
@@ -190,6 +190,29 @@ def detail_scan(request, id, slug):
     risk_score += abuse_risk_contribution
 
     risk_score = min(risk_score, 100)
+
+    if risk_score == 0:
+    risk_level = "No Risk"
+    elif 1 <= risk_score <= 30:
+        risk_level = "Low Risk"
+    elif 31 <= risk_score <= 60:
+        risk_level = "Moderate Risk"
+    elif 61 <= risk_score <= 85:
+        risk_level = "High Risk"
+    elif 86 <= risk_score <= 100:
+        risk_level = "Critical Risk"
+
+    # --- INTEGRASI SPLUNK ---
+    if scan.status == 'Completed':
+        scan_data = {
+            'target': scan.domain.name,
+            'scan_id': scan.id,
+            'risk_score': risk_score,
+            'risk_level': risk_level, # Level risiko sesuai acuan Anda
+            'vulnerabilities_count': vulns.count(),
+            'engine_name': scan.engine.engine_name
+        }
+        send_to_splunk(scan_data)
 
     # Build render context
     ctx = {
@@ -1203,3 +1226,4 @@ def get_abuseipdb_ip_details(request):
             
     except Exception as e:
         return JsonResponse({'status': False, 'message': str(e)}, status=500)
+

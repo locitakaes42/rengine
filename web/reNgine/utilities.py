@@ -173,3 +173,32 @@ def sorting_key(subdomain):
 		return 3
 	else:
 		return 4
+
+import requests
+import json
+
+def send_to_splunk(scan_data):
+    splunk_url = "https://<YOUR_SPLUNK_IP>:8088/services/collector/event"
+    headers = {
+        'Authorization': 'Splunk <YOUR_HEC_TOKEN>'
+    }
+    
+    # Payload yang akan dikirim ke Splunk
+    payload = {
+        "event": {
+            "message": "reNgine Scan Completed",
+            "target": scan_data.get('target'),
+            "scan_id": scan_data.get('scan_id'),
+            "risk_score": scan_data.get('risk_score'),
+            "vulnerabilities": scan_data.get('vulnerabilities_count'),
+            "status": "Success",
+            "engine": scan_data.get('engine_name')
+        },
+        "sourcetype": "rengine_scan_log"
+    }
+    
+    try:
+        response = requests.post(splunk_url, headers=headers, data=json.dumps(payload), verify=False)
+        return response.status_code
+    except Exception as e:
+        print(f"Failed to send data to Splunk: {e}")
