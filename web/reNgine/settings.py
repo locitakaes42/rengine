@@ -343,3 +343,7 @@ CACHES = {
         'TIMEOUT': 60 * 30,  # 30 minutes caching will be used
     }
 }
+
+# Splunk Configuration
+SPLUNK_HEC_URL = os.environ.get('SPLUNK_HEC_URL', '')
+SPLUNK_HEC_TOKEN = os.environ.get('SPLUNK_HEC_TOKEN', '')
