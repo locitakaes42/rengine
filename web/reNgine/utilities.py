@@ -173,3 +173,51 @@ def sorting_key(subdomain):
 		return 3
 	else:
 		return 4
+
+import requests
+import json
+import urllib3
+from django.conf import settings
+
+# Nonaktifkan peringatan SSL untuk self-signed cert Splunk
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+def send_to_splunk(scan_data):
+    # Mengambil data dari settings yang terhubung ke .env
+    splunk_url = settings.SPLUNK_HEC_URL
+    splunk_token = settings.SPLUNK_HEC_TOKEN
+
+    if not splunk_url or not splunk_token:
+        # Jika konfigurasi belum ada di .env, hentikan proses
+        return None
+
+    headers = {
+        'Authorization': f'Splunk {splunk_token}',
+        'Content-Type': 'application/json'
+    }
+    
+    payload = {
+        "event": {
+            "message": "reNgine Scan Completed",
+            "target": scan_data.get('target'),
+            "scan_id": scan_data.get('scan_id'),
+            "risk_score": scan_data.get('risk_score'),
+            "risk_level": scan_data.get('risk_level'),
+            "vulnerabilities": scan_data.get('vulnerabilities_count'),
+            "status": "Success",
+            "engine": scan_data.get('engine_name')
+        },
+        "sourcetype": "rengine_scan_log"
+    }
+    
+    try:
+        response = requests.post(
+            splunk_url, 
+            headers=headers, 
+            data=json.dumps(payload), 
+            verify=False, 
+            timeout=10
+        )
+        return response.status_code
+    except Exception as e:
+        print(f"Failed to send data to Splunk: {e}")
