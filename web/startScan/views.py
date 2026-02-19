@@ -205,13 +205,19 @@ def detail_scan(request, id, slug):
     # --- INTEGRASI SPLUNK ---
     if scan.status == 'Completed':
         scan_data = {
-            'target': scan.domain.name,
-            'scan_id': scan.id,
-            'risk_score': risk_score,
-            'risk_level': risk_level, # Level risiko sesuai acuan Anda
-            'vulnerabilities_count': vulns.count(),
-            'engine_name': scan.engine.engine_name
-        }
+                'scan_id': scan.id,
+                'target': scan.domain.name,
+                'engine_name': scan.engine.engine_name,
+                'risk_score': risk_score,
+                'risk_level': risk_level,
+                'vulnerabilities_count': total_count,
+                'ports_count': ip_addresses.filter(ip_addresses__ports__isnull=False).distinct().count(), # Contoh hitung port
+                'dir_count': directory_exists_count, # Pastikan variabel ini ada
+                'osint_count': (emails.count() + employees.count()),
+                'waf_detected': waf_exists,
+                'max_abuse_score': max_abuse_score,
+                'scan_url': request.build_absolute_uri() # Otomatis mengambil URL halaman ini
+            }
         send_to_splunk(scan_data)
 
     # Build render context
