@@ -196,19 +196,32 @@ def send_to_splunk(scan_data):
         'Content-Type': 'application/json'
     }
     
-    payload = {
-        "event": {
-            "message": "reNgine Scan Completed",
-            "target": scan_data.get('target'),
-            "scan_id": scan_data.get('scan_id'),
-            "risk_score": scan_data.get('risk_score'),
-            "risk_level": scan_data.get('risk_level'),
-            "vulnerabilities": scan_data.get('vulnerabilities_count'),
-            "status": "Success",
-            "engine": scan_data.get('engine_name')
-        },
-        "sourcetype": "rengine_scan_log"
-    }
+	payload = {
+			"time": int(time.time()),
+			"host": "reNgine-Server",
+			"source": "reNgine",
+			"sourcetype": "rengine:scan:event",
+			"index": "security_events", # Pastikan index ini ada di Splunk Anda
+			"event": {
+				"message": "reNgine Scan Completed",
+				"scan_id": scan_data.get('scan_id'),
+				"target": scan_data.get('target'),
+				"scan_status": "Completed",
+				"engine_name": scan_data.get('engine_name'),
+				"risk_score": scan_data.get('risk_score'),
+				"risk_level": scan_data.get('risk_level'),
+				"details": {
+					"vulnerabilities_found": scan_data.get('vulnerabilities_count'),
+					"open_ports_count": scan_data.get('ports_count'),
+					"directories_found": scan_data.get('dir_count'),
+					"osint_data_count": scan_data.get('osint_count'),
+					"waf_detected": scan_data.get('waf_detected'),
+					"max_ip_abuse_confidence": scan_data.get('max_abuse_score')
+				},
+				"scanned_at": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+				"scan_url": scan_data.get('scan_url')
+			}
+    		}
     
     try:
         response = requests.post(
