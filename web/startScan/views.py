@@ -203,22 +203,22 @@ def detail_scan(request, id, slug):
         risk_level = "Critical Risk"
 
     # --- INTEGRASI SPLUNK ---
-    # if scan.status == 2:
-    #     scan_data = {
-    #             'scan_id': scan.id,
-    #             'target': scan.domain.name,
-    #             'engine_name': scan.scan_type.engine_name,
-    #             'risk_score': risk_score,
-    #             'risk_level': risk_level,
-    #             'vulnerabilities_count': total_count,
-    #             'ports_count': ip_addresses.filter(ip_addresses__ports__isnull=False).distinct().count(), # Contoh hitung port
-    #             'dir_count': 1 if directory_exists else 0,
-    #             'osint_count': (emails.count() + employees.count()),
-    #             'waf_detected': waf_exists,
-    #             'max_abuse_score': max_abuse_score,
-    #             'scan_url': request.build_absolute_uri() # Otomatis mengambil URL halaman ini
-    #         }
-    #     send_to_splunk(scan_data)
+    if scan.status == 2:
+        scan_data = {
+                'scan_id': scan.id,
+                'target': scan.domain.name,
+                'engine_name': scan.scan_type.engine_name,
+                'risk_score': risk_score,
+                'risk_level': risk_level,
+                'vulnerabilities_count': total_count,
+                'ports_count': ip_addresses.filter(ip_addresses__ports__isnull=False).distinct().count(), # Contoh hitung port
+                'dir_count': 1 if directory_exists else 0,
+                'osint_count': (emails.count() + employees.count()),
+                'waf_detected': waf_exists,
+                'max_abuse_score': max_abuse_score,
+                'scan_url': request.build_absolute_uri() # Otomatis mengambil URL halaman ini
+            }
+        send_to_splunk(scan_data)
 
     # Build render context
     ctx = {
