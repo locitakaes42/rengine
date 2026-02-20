@@ -192,7 +192,7 @@ def detail_scan(request, id, slug):
     risk_score = min(risk_score, 100)
 
     if risk_score == 0:
-        risk_level = "No Risk"
+        risk_level = "No Risk" #test
     elif 1 <= risk_score <= 30:
         risk_level = "Low Risk"
     elif 31 <= risk_score <= 60:
