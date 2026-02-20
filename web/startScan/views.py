@@ -4,7 +4,7 @@ from celery import group
 from weasyprint import HTML, CSS
 from datetime import datetime
 from django.contrib import messages
-from django.db.models import Count, Case, When, IntegerField
+from django.db.models import Count, Case, When, IntegerField, Max
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import get_template
@@ -170,7 +170,7 @@ def detail_scan(request, id, slug):
     osint_exists = emails.exists() or employees.exists()
     waf_exists = Waf.objects.filter(waf__in=subdomains).exists()
     #abuse IP Score
-    max_abuse_score = ip_addresses.aggregate(models.Max('abuse_confidence_score'))['abuse_confidence_score__max'] or 0
+    max_abuse_score = ip_addresses.aggregate(Max('abuse_confidence_score'))['abuse_confidence_score__max'] or 0
     #Konversi skor 0-100 menjadi penambahan risk score 0-20
     abuse_risk_contribution = int(max_abuse_score / 5)
 
@@ -203,7 +203,7 @@ def detail_scan(request, id, slug):
         risk_level = "Critical Risk"
 
     # --- INTEGRASI SPLUNK ---
-    if scan.status == 2:
+    if scan.scan_status == 2:
         scan_data = {
                 'scan_id': scan.id,
                 'target': scan.domain.name,
@@ -211,7 +211,7 @@ def detail_scan(request, id, slug):
                 'risk_score': risk_score,
                 'risk_level': risk_level,
                 'vulnerabilities_count': total_count,
-                'ports_count': ip_addresses.filter(ip_addresses__ports__isnull=False).distinct().count(), # Contoh hitung port
+                'ports_count': ip_addresses.filter(ports__isnull=False).distinct().count(),
                 'dir_count': 1 if directory_exists else 0,
                 'osint_count': (emails.count() + employees.count()),
                 'waf_detected': waf_exists,
