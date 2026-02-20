@@ -164,8 +164,8 @@ def detail_scan(request, id, slug):
     # Emails
     exposed_count = emails.exclude(password__isnull=True).count()
 
-    totalvulns_count = vulns.count()
-    port_exists = Port.objects.filter(ports__in=ip_addresses).exists()
+    totalvulns_count = vulns.exclude(severity=0).count()
+    port_exists = Port.objects.filter(ports__in=ip_addresses,is_uncommon=True).exists()
     directory_exists = DirectoryFile.objects.filter(directory_files__in=DirectoryScan.objects.filter(dir_subscan_ids__scan_history=scan)).exists()
     osint_exists = emails.exists() or employees.exists()
     waf_exists = Waf.objects.filter(waf__in=subdomains).exists()
