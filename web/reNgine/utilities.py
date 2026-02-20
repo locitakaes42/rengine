@@ -177,6 +177,7 @@ def sorting_key(subdomain):
 import requests
 import json
 import urllib3
+import time
 from django.conf import settings
 
 # Nonaktifkan peringatan SSL untuk self-signed cert Splunk
@@ -197,40 +198,42 @@ def send_to_splunk(scan_data):
     }
     
 	payload = {
-			"time": int(time.time()),
-			"host": "reNgine-Server",
-			"source": "reNgine",
-			"sourcetype": "rengine:scan:event",
-			"index": "security_events", # Pastikan index ini ada di Splunk Anda
-			"event": {
-				"message": "reNgine Scan Completed",
-				"scan_id": scan_data.get('scan_id'),
-				"target": scan_data.get('target'),
-				"scan_status": "Completed",
-				"engine_name": scan_data.get('engine_name'),
-				"risk_score": scan_data.get('risk_score'),
-				"risk_level": scan_data.get('risk_level'),
-				"details": {
-					"vulnerabilities_found": scan_data.get('vulnerabilities_count'),
-					"open_ports_count": scan_data.get('ports_count'),
-					"directories_found": scan_data.get('dir_count'),
-					"osint_data_count": scan_data.get('osint_count'),
-					"waf_detected": scan_data.get('waf_detected'),
-					"max_ip_abuse_confidence": scan_data.get('max_abuse_score')
-				},
-				"scanned_at": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
-				"scan_url": scan_data.get('scan_url')
-			}
-    		}
-    
-    try:
-        response = requests.post(
-            splunk_url, 
-            headers=headers, 
-            data=json.dumps(payload), 
-            verify=False, 
-            timeout=10
-        )
-        return response.status_code
-    except Exception as e:
-        print(f"Failed to send data to Splunk: {e}")
+		"time": int(time.time()),
+		"host": "reNgine-Server",
+		"source": "reNgine",
+		"sourcetype": "rengine:scan:event",
+		"index": "security_events",
+		"event": {
+			"message": "reNgine Scan Completed",
+			"scan_id": scan_data.get('scan_id'),
+			"target": scan_data.get('target'),
+			"scan_status": "Completed",
+			"engine_name": scan_data.get('engine_name'),
+			"risk_score": scan_data.get('risk_score'),
+			"risk_level": scan_data.get('risk_level'),
+			"details": {
+				"vulnerabilities_found": scan_data.get('vulnerabilities_count'),
+				"open_ports_count": scan_data.get('ports_count'),
+				"directories_found": scan_data.get('dir_count'),
+				"osint_data_count": scan_data.get('osint_count'),
+				"waf_detected": scan_data.get('waf_detected'),
+				"max_ip_abuse_confidence": scan_data.get('max_abuse_score')
+			},
+			"scanned_at": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+			"scan_url": scan_data.get('scan_url')
+		}
+	}
+	
+	try:
+		response = requests.post(
+			splunk_url, 
+			headers=headers, 
+			data=json.dumps(payload), 
+			verify=False, 
+			timeout=10
+		)
+		return response.status_code
+	except Exception as e:
+		import logging
+		logging.error(f"Failed to send data to Splunk: {e}")
+		print(f"Failed to send data to Splunk: {e}")
